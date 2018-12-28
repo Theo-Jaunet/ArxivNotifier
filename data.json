@@ -7,5 +7,7 @@
     "explainability",
     "visual analysis",
     "GAN"
-  ]
+  ],"foo": [
+  "GAN"
+]
 }
