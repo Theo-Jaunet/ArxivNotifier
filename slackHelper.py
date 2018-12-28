@@ -7,7 +7,7 @@ class SlackHelper:
     def __init__(self):
         self.slack_token = os.environ['SLACK_TOKEN']
         self.slack_client = SlackClient(self.slack_token)
-        self.slack_channel = 'GF40LP9UP'  # os.environ['SLACK_CHANNEL']
+        self.slack_channel = os.environ['SLACK_CHANNEL']
 
     def post_message(self, msg, recipient):
         return self.slack_client.api_call(
