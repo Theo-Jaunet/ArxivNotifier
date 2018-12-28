@@ -61,7 +61,12 @@ def add():
 
 
 def dohelp():
-    return {}
+    return {"text": " Available commands : \n " +
+                    "`add keyword` to add a keyword in your list (and register you if its your first time, \n " +
+                    "`remove keyword` to remove a keyword from your list, \n" +
+                    "`my-words` to display all the keywords in your list, \n" +
+                    "`help` to display help"
+            }
 
 
 def doadd(user, word):
@@ -112,6 +117,9 @@ def checkindb(user):
 
 def savedb(data):
     ujson.dump(data, open('data.json', 'w'))
+
+
+
 
 
 if __name__ == '__main__':

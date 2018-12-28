@@ -9,12 +9,17 @@ import time
 import pickle
 import random
 import argparse
+import ujson
 import urllib.request
 import feedparser
+from time import sleep
 
-mega = []
+from slackHelper import SlackHelper
 
 last = '1812.10464'
+base_url = 'http://export.arxiv.org/api/query?'
+
+
 def encode_feedparser_dict(d):
     """
     helper function to get rid of feedparser bs with a deep copy.
@@ -46,30 +51,8 @@ def parse_arxiv_url(url):
     return parts[0], int(parts[1])
 
 
-if __name__ == "__main__":
-
-    # parse input arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--search-query', type=str,
-                        default='cat:cs.CV+OR+cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.NE+OR+cat:stat.ML',
-                        help='query used for arxiv API. See http://arxiv.org/help/api/user-manual#detailed_examples')
-    parser.add_argument('--start-index', type=int, default=0, help='0 = most recent API result')
-    parser.add_argument('--max-index', type=int, default=20, help='upper bound on paper index we will fetch')
-    parser.add_argument('--results-per-iteration', type=int, default=10, help='passed to arxiv API')
-    parser.add_argument('--wait-time', type=float, default=5.0,
-                        help='lets be gentle to arxiv API (in number of seconds)')
-    parser.add_argument('--break-on-no-added', type=int, default=1,
-                        help='break out early if all returned query papers are already in db? 1=yes, 0=no')
-    args = parser.parse_args()
-
-    # misc hardcoded variables
-    base_url = 'http://export.arxiv.org/api/query?'  # base api query url
-    print('Searching arXiv for %s' % (args.search_query,))
-
-    # -----------------------------------------------------------------------------
-    # main loop where we fetch the new results
-    # print('database has %d entries at start' % (len(db),))
-
+def getlastpapers():
+    mega = []
     num_added_total = 0
     for i in range(args.start_index, args.max_index, args.results_per_iteration):
 
@@ -89,12 +72,39 @@ if __name__ == "__main__":
             # extract just the raw arxiv id and version for this paper
             rawid, version = parse_arxiv_url(j['id'])
 
-            print(rawid == last)
+            if rawid == last:
+                break
+
             j['_rawid'] = rawid
             j['_version'] = version
 
+            mega.append(j)
+    return mega
 
-        mega.append(j)
+def check4words():
+    dic = ujson.load(open('data.json'))
+
+if __name__ == "__main__":
+    # parse input arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--search-query', type=str,
+                        default='cat:cs.CV+OR+cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.NE+OR+cat:stat.ML',
+                        help='query used for arxiv API. See http://arxiv.org/help/api/user-manual#detailed_examples')
+    parser.add_argument('--start-index', type=int, default=0, help='0 = most recent API result')
+    parser.add_argument('--max-index', type=int, default=20, help='upper bound on paper index we will fetch')
+    parser.add_argument('--results-per-iteration', type=int, default=10, help='passed to arxiv API')
+    parser.add_argument('--wait-time', type=float, default=5.0,
+                        help='lets be gentle to arxiv API (in number of seconds)')
+    parser.add_argument('--break-on-no-added', type=int, default=1,
+                        help='break out early if all returned query papers are already in db? 1=yes, 0=no')
+    args = parser.parse_args()
+
+    # misc hardcoded variables
+    # base api query url
+    print('Searching arXiv for %s' % (args.search_query,))
+    slackhelper = SlackHelper()
+
+    while True:
+        sleep(15 * 60)
 
 
-    print(mega)
