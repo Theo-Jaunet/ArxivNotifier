@@ -125,7 +125,7 @@ if __name__ == "__main__":
     parser.add_argument('--start-index', type=int, default=0, help='0 = most recent API result')
     parser.add_argument('--max-index', type=int, default=50, help='upper bound on paper index we will fetch')
     parser.add_argument('--results-per-iteration', type=int, default=50, help='passed to arxiv API')
-    parser.add_argument('--wait-time', type=float, default=1,
+    parser.add_argument('--wait-time', type=float, default=30,
                         help='lets be gentle to arxiv API (in minutes)')
 
     args = parser.parse_args()
