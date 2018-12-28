@@ -7,7 +7,7 @@ class SlackHelper:
     def __init__(self):
         self.slack_token = os.environ['SLACK_TOKEN']
         self.slack_client = SlackClient(self.slack_token)
-        self.slack_channel = os.environ['SLACK_CHANNEL']
+        self.slack_channel = 'GF40LP9UP'  # os.environ['SLACK_CHANNEL']
 
     def post_message(self, msg, recipient):
         return self.slack_client.api_call(
@@ -17,14 +17,15 @@ class SlackHelper:
             as_user=True
         )
 
-    def post_message_to_channel(self, msg):
+    def post_message_to_channel(self, msg, att):
         return self.slack_client.api_call(
             "chat.postMessage",
             channel=self.slack_channel,
             text=msg,
-            username='arxivnotifier',
-            parse='full',
-            as_user=False
+            # username='arxivnotifier',
+            # parse='full',
+            attachments=att
+            # as_user=False
         )
 
     def file_upload(self, file_content, file_name, file_type, title=None, ):

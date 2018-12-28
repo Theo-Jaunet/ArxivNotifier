@@ -3,11 +3,6 @@ Queries arxiv API and downloads papers (the query is a parameter).
 The script is intended to enrich an existing database pickle (by default db.p),
 so this file will be loaded first, and then new results will be added to it.
 """
-
-import os
-import time
-import pickle
-import random
 import argparse
 import ujson
 import urllib.request
@@ -16,7 +11,7 @@ from time import sleep
 
 from slackHelper import SlackHelper
 
-last = '1812.10464'
+last = '1606.07461'
 base_url = 'http://export.arxiv.org/api/query?'
 
 
@@ -52,8 +47,10 @@ def parse_arxiv_url(url):
 
 
 def getlastpapers():
-    mega = []
-    num_added_total = 0
+    papers = []
+    global last
+    dic = ujson.load(open('data.json'))
+
     for i in range(args.start_index, args.max_index, args.results_per_iteration):
 
         print("Results %i - %i" % (i, i + args.results_per_iteration))
@@ -62,27 +59,60 @@ def getlastpapers():
         with urllib.request.urlopen(base_url + query) as url:
             response = url.read()
         parse = feedparser.parse(response)
-        num_added = 0
-        num_skipped = 0
-
         for e in parse.entries:
-            print(e)
+
             j = encode_feedparser_dict(e)
 
-            # extract just the raw arxiv id and version for this paper
             rawid, version = parse_arxiv_url(j['id'])
 
             if rawid == last:
+                print(i, 'Break ! ! !')
                 break
+            else:
 
-            j['_rawid'] = rawid
-            j['_version'] = version
+                j['_rawid'] = rawid
+                j['_version'] = version
 
-            mega.append(j)
-    return mega
+                tuse = []
+                for user in dic:
+                    for w in dic[user]:
 
-def check4words():
-    dic = ujson.load(open('data.json'))
+                        test = w in j['summary_detail']['value'] or w in j['title_detail']['value']
+                        if test:
+                            tuse.append(user)
+                            break
+                if len(tuse) > 0:
+                    make_message(tuse, j)
+
+            papers.append(j)
+    last = papers[0]['_rawid']
+    return papers
+
+
+def make_message(userlist, paper):
+    men = ''
+    for u in userlist:
+        men += ' <@' + u + '>, '
+
+    att = [
+        {
+            "fallback": 'The paper : ' + paper['title_detail']['value'].replace('\n', ' ') + ' written by ' + paper['authors'][0]['name'] + '  \n You may want to check it out at ' + paper['id'] + ' !',
+            "color": "#36a64f",
+            "attachment_type": "default",
+            "text": "You may want to check it out at : " + paper['id'],
+            "fields": [
+                {
+                    "title": "\" " + paper['title_detail']['value'].replace('\n', ' ') + "\"",
+                    "value": " written by *" + paper['authors'][0]['name'] + "* et al.",
+                    "short": False
+                }
+            ]
+
+        }
+    ]
+
+    slackhelper.post_message_to_channel("Hey " + men + "this paper just came out ! ", att)
+
 
 if __name__ == "__main__":
     # parse input arguments
@@ -91,20 +121,17 @@ if __name__ == "__main__":
                         default='cat:cs.CV+OR+cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.NE+OR+cat:stat.ML',
                         help='query used for arxiv API. See http://arxiv.org/help/api/user-manual#detailed_examples')
     parser.add_argument('--start-index', type=int, default=0, help='0 = most recent API result')
-    parser.add_argument('--max-index', type=int, default=20, help='upper bound on paper index we will fetch')
-    parser.add_argument('--results-per-iteration', type=int, default=10, help='passed to arxiv API')
+    parser.add_argument('--max-index', type=int, default=50, help='upper bound on paper index we will fetch')
+    parser.add_argument('--results-per-iteration', type=int, default=50, help='passed to arxiv API')
     parser.add_argument('--wait-time', type=float, default=5.0,
                         help='lets be gentle to arxiv API (in number of seconds)')
     parser.add_argument('--break-on-no-added', type=int, default=1,
                         help='break out early if all returned query papers are already in db? 1=yes, 0=no')
     args = parser.parse_args()
 
-    # misc hardcoded variables
-    # base api query url
     print('Searching arXiv for %s' % (args.search_query,))
     slackhelper = SlackHelper()
+    getlastpapers()
+    # while True:
 
-    while True:
-        sleep(15 * 60)
-
-
+    # sleep(30 * 60)
