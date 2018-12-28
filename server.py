@@ -56,7 +56,7 @@ def add():
 
 
 def dohelp():
-    return {"text": "Use '_' instead of space in keywords, they will be switched when parsing the pdf"
+    return {"text": "Use '_' instead of space in keywords, they will be switched when parsing the pdf. \n"
                     "Available commands : \n " +
                     "`add keyword` to add a keyword in your list (and register you if its your first time, \n " +
                     "`remove keyword` to remove a keyword from your list, \n" +
