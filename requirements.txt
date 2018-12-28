@@ -1,5 +1,4 @@
 Flask
 ujson
-logging
 feedparser
 slackclient
