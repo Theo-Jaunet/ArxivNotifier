@@ -3,7 +3,6 @@ import zipfile
 import binascii
 from flask import Flask, render_template, request, session, redirect, jsonify
 import ujson
-import logging
 from slackHelper import SlackHelper
 
 app = Flask(__name__)
@@ -16,8 +15,6 @@ COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/csv', 'text/xml', 'applicat
 COMPRESS_LEVEL = 6
 COMPRESS_MIN_SIZE = 500
 
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
 
 allowed_commands = [
     'add'
@@ -61,7 +58,8 @@ def add():
 
 
 def dohelp():
-    return {"text": " Available commands : \n " +
+    return {"text": "Use '_' instead of space in keywords, they will be switched when parsing the pdf"
+                    "Available commands : \n " +
                     "`add keyword` to add a keyword in your list (and register you if its your first time, \n " +
                     "`remove keyword` to remove a keyword from your list, \n" +
                     "`my-words` to display all the keywords in your list, \n" +
@@ -104,8 +102,8 @@ def doshow(user):
     else:
         words = "["
         for w in dic[user]:
-            words += w + ','
-        words = words[:-1] + ']'
+            words += w + ', '
+        words = words[:-2] + ']'
         return {"text": "Our dataset contains the following words : `" + words + "`"}
 
 
@@ -117,9 +115,6 @@ def checkindb(user):
 
 def savedb(data):
     ujson.dump(data, open('data.json', 'w'))
-
-
-
 
 
 if __name__ == '__main__':
