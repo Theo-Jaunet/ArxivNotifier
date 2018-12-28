@@ -15,7 +15,6 @@ COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/csv', 'text/xml', 'applicat
 COMPRESS_LEVEL = 6
 COMPRESS_MIN_SIZE = 500
 
-
 allowed_commands = [
     'add'
     'help'
@@ -34,7 +33,6 @@ def hello_world():
 
 @app.route('/bot', methods=['POST', 'GET'])
 def add():
-    slackhelper = SlackHelper()
     command_text = request.form['text']
     command_text = command_text.split(' ')
     slack_uid = request.form['user_id']
@@ -118,4 +116,5 @@ def savedb(data):
 
 
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
